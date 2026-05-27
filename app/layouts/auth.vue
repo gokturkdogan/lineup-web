@@ -1,9 +1,10 @@
 <script setup lang="ts">
 /**
- * Minimal layout for the auth flow.
- * - Full viewport height
- * - Centered content
- * - Subtle brand background
+ * Auth shell — frame yok, native ekran hissi.
+ *
+ * - Mobile: tüm ekran. Hero ve sheet'i sayfa kendi yönetir.
+ * - Tablet+: içerik 440 px column'da ortalanır; üstte/altta brand-gradient
+ *   bir matte kalır.
  */
 </script>
 
@@ -17,23 +18,27 @@
 
 <style scoped lang="scss">
 .auth-layout {
-  position: relative;
   min-height: 100dvh;
   width: 100%;
-  background:
-    radial-gradient(120% 80% at 50% 0%, rgba($color-primary, 0.12) 0%, transparent 60%),
-    $color-bg;
-  @include safe-area-top($space-lg);
-  @include safe-area-bottom($space-lg);
+  background-color: $color-surface;
 
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: $space-lg;
+  // Desktop'ta sayfayı ortala; sayfa zaten %100 width'i alır.
+  @include media-up(tablet) {
+    display: flex;
+    align-items: stretch;
+    justify-content: center;
+    background-color: $color-bg;
+  }
 
   &__inner {
     width: 100%;
-    max-width: 420px;
+    min-height: 100dvh;
+    background-color: $color-surface;
+
+    @include media-up(tablet) {
+      max-width: 440px;
+      box-shadow: 0 24px 60px rgba($color-text, 0.10);
+    }
   }
 }
 </style>
