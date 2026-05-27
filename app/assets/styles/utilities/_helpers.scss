@@ -1,0 +1,19 @@
+@use '../abstracts' as *;
+
+// Tiny set of utility classes — most styling should live in components.
+// These are intentionally minimal: utilities should not be a substitute
+// for proper component-scoped SCSS.
+
+.u-visually-hidden { @include visually-hidden; }
+.u-truncate        { @include truncate; }
+
+.u-text-center     { text-align: center; }
+.u-text-muted      { color: $color-text-muted; }
+.u-text-faint      { color: $color-text-faint; }
+
+.u-full-width      { width: 100%; }
+.u-no-scrollbar    { @include hide-scrollbar; }
+
+.u-stack > * + *   { margin-top: $space-md; }
+.u-stack-sm > * + *{ margin-top: $space-sm; }
+.u-stack-lg > * + *{ margin-top: $space-lg; }

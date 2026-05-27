@@ -1,0 +1,16 @@
+// =============================================================================
+// Breakpoint tokens.
+// Mobile-first: values describe the *start* of each range (min-width).
+// =============================================================================
+
+$breakpoint-mobile:  480px;
+$breakpoint-tablet:  768px;
+$breakpoint-desktop: 1024px;
+$breakpoint-wide:    1280px;
+
+$breakpoints: (
+  mobile:  $breakpoint-mobile,
+  tablet:  $breakpoint-tablet,
+  desktop: $breakpoint-desktop,
+  wide:    $breakpoint-wide,
+);
