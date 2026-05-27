@@ -1,0 +1,30 @@
+{
+  "name": "lineup-web",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Lineup — frontend web application for organizing amateur football matches.",
+  "scripts": {
+    "build": "nuxt build",
+    "dev": "nuxt dev",
+    "generate": "nuxt generate",
+    "preview": "nuxt preview",
+    "postinstall": "nuxt prepare",
+    "typecheck": "nuxt typecheck",
+    "lint": "eslint ."
+  },
+  "dependencies": {
+    "@pinia/nuxt": "^0.5.5",
+    "axios": "^1.7.7",
+    "nuxt": "^3.14.0",
+    "pinia": "^2.2.6",
+    "vue": "^3.5.13",
+    "vue-router": "^4.5.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.1",
+    "sass-embedded": "^1.83.0",
+    "typescript": "^5.7.2",
+    "vue-tsc": "^2.1.10"
+  }
+}

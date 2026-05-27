@@ -1,0 +1,5 @@
+// Aggregated abstracts — used as the global injection target in nuxt.config.ts.
+@forward 'variables';
+@forward 'breakpoints';
+@forward 'media';
+@forward 'mixins';
