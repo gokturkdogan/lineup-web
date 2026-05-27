@@ -1,0 +1,60 @@
+@use '../abstracts' as *;
+
+:root {
+  --app-header-height: #{$app-header-height};
+  --bottom-nav-height: #{$bottom-nav-height};
+  --app-max-width: #{$app-max-width};
+
+  --color-primary: #{$color-primary};
+  --color-bg: #{$color-bg};
+  --color-surface: #{$color-surface};
+  --color-text: #{$color-text};
+  --color-text-muted: #{$color-text-muted};
+  --color-border: #{$color-border};
+
+  // Safe-area shortcuts so we can refer to them in calc()
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left: env(safe-area-inset-left, 0px);
+  --safe-right: env(safe-area-inset-right, 0px);
+}
+
+// =============================================================================
+// Native-app feel
+// =============================================================================
+
+html, body {
+  overscroll-behavior-y: none;
+  touch-action: manipulation;
+}
+
+// Prevent iOS rubber-band scroll on the body — only the content area scrolls.
+body {
+  position: relative;
+  overflow-x: hidden;
+}
+
+// =============================================================================
+// Page / layout transitions
+// =============================================================================
+
+.page-enter-active,
+.page-leave-active,
+.layout-enter-active,
+.layout-leave-active {
+  transition:
+    opacity $duration-base $ease-standard,
+    transform $duration-base $ease-standard;
+}
+
+.page-enter-from,
+.layout-enter-from {
+  opacity: 0;
+  transform: translateY(8px);
+}
+
+.page-leave-to,
+.layout-leave-to {
+  opacity: 0;
+  transform: translateY(-4px);
+}

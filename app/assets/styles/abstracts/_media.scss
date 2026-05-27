@@ -1,0 +1,41 @@
+@use 'sass:map';
+@use 'breakpoints' as *;
+
+// =============================================================================
+// Responsive media-query helpers.
+// Usage:
+//   @include media-up(tablet)   { ... }   // min-width: 768px
+//   @include media-down(tablet) { ... }   // max-width: 767.98px
+//   @include media-between(mobile, desktop) { ... }
+// =============================================================================
+
+@function _bp($name) {
+  @if not map.has-key($breakpoints, $name) {
+    @error "Unknown breakpoint `#{$name}`. Available: #{map.keys($breakpoints)}";
+  }
+  @return map.get($breakpoints, $name);
+}
+
+@mixin media-up($name) {
+  @media (min-width: #{_bp($name)}) {
+    @content;
+  }
+}
+
+@mixin media-down($name) {
+  @media (max-width: #{_bp($name) - 0.02px}) {
+    @content;
+  }
+}
+
+@mixin media-between($from, $to) {
+  @media (min-width: #{_bp($from)}) and (max-width: #{_bp($to) - 0.02px}) {
+    @content;
+  }
+}
+
+@mixin media-hover {
+  @media (hover: hover) and (pointer: fine) {
+    @content;
+  }
+}
