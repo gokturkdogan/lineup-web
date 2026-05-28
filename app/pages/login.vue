@@ -227,7 +227,7 @@ $sheet-radius: 32px;
   align-self: flex-end;
   margin-top: -$space-2;
   color: $color-primary;
-  font-size: $font-size-sm;
+  font-size: $font-size-base;
   font-weight: $font-weight-semibold;
   text-decoration: none;
   @include focus-ring;
@@ -347,12 +347,12 @@ $sheet-radius: 32px;
 
 .login__signup-prompt {
   color: $color-text-muted;
-  font-size: $font-size-sm;
+  font-size: $font-size-md;
 }
 
 .login__signup-link {
   color: $color-text;
-  font-size: $font-size-md;
+  font-size: $font-size-xl;
   font-weight: $font-weight-bold;
   text-decoration: none;
   @include focus-ring;

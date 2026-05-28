@@ -66,13 +66,13 @@ const onGoogleSignIn = () => {}
   min-height: 100dvh;
   overflow: hidden;
   color: #fff;
+  // Soldan sağa yumuşak geçiş: canlı yeşilden derin koyu yeşile
   background:
     linear-gradient(
-      135deg,
-      lighten($color-primary, 4%) 0%,
-      $color-primary 28%,
-      $color-primary-hover 62%,
-      #064e3b 100%
+      to right,
+      $color-primary 0%,
+      #0c5a36 55%,
+      #052b1a 100%
     );
 }
 
@@ -88,20 +88,24 @@ const onGoogleSignIn = () => {}
     border-radius: 50%;
   }
 
+  // Sol-üstte yumuşak aydınlık aksan (göz yormayan, derinlik hissi için)
   &::before {
-    width: 280px;
-    height: 280px;
-    top: -100px;
-    right: -80px;
-    background: radial-gradient(circle, rgba(#fff, 0.18) 0%, transparent 70%);
+    width: 360px;
+    height: 360px;
+    top: -120px;
+    left: -120px;
+    background: radial-gradient(circle, rgba($color-primary, 0.22) 0%, transparent 70%);
+    filter: blur(8px);
   }
 
+  // Sağ-alt çok hafif derinlik
   &::after {
-    width: 240px;
-    height: 240px;
-    bottom: 18%;
-    left: -90px;
-    background: radial-gradient(circle, rgba(#fff, 0.12) 0%, transparent 70%);
+    width: 280px;
+    height: 280px;
+    bottom: -120px;
+    right: -100px;
+    background: radial-gradient(circle, rgba(#000, 0.18) 0%, transparent 70%);
+    filter: blur(8px);
   }
 }
 
@@ -193,7 +197,7 @@ const onGoogleSignIn = () => {}
   flex: 0 0 auto;
   display: flex;
   flex-direction: column;
-  gap: $space-sm;
+  gap: $space-md;
   width: 100%;
   max-width: 320px;
 }
@@ -220,18 +224,18 @@ const onGoogleSignIn = () => {}
     transform: scale(0.985);
   }
 
-  &--outline {
-    border: 2px solid rgba(#fff, 0.92);
-    color: #fff;
-    background-color: transparent;
+    &--outline {
+      border: 1.5px solid rgba(#fff, 0.42);
+      color: #fff;
+      background-color: transparent;
 
-    @include media-hover {
-      &:hover {
-        background-color: rgba(#fff, 0.1);
-        border-color: #fff;
+      @include media-hover {
+        &:hover {
+          background-color: rgba(#fff, 0.06);
+          border-color: rgba(#fff, 0.55);
+        }
       }
     }
-  }
 
   &--solid {
     border: 2px solid #fff;

@@ -303,7 +303,7 @@ $sheet-radius: 32px;
   padding: $space-3 $space-md;
   background-color: rgba($color-error, 0.08);
   color: $color-error;
-  font-size: $font-size-sm;
+  font-size: $font-size-base;
   line-height: 1.4;
   border-radius: $radius-md;
 
@@ -395,12 +395,12 @@ $sheet-radius: 32px;
 
 .register__signin-prompt {
   color: $color-text-muted;
-  font-size: $font-size-sm;
+  font-size: $font-size-md;
 }
 
 .register__signin-link {
   color: $color-text;
-  font-size: $font-size-md;
+  font-size: $font-size-xl;
   font-weight: $font-weight-bold;
   text-decoration: none;
   @include focus-ring;
