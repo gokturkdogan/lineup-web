@@ -34,7 +34,7 @@ const onSubmit = async () => {
   try {
     await login({ email: form.email.trim(), password: form.password })
     const redirect =
-      typeof route.query.redirect === 'string' ? route.query.redirect : '/'
+      typeof route.query.redirect === 'string' ? route.query.redirect : '/home'
     await router.replace(redirect)
   } catch {
     // Hata mesajı auth store içinde (`authError`) tutuluyor.

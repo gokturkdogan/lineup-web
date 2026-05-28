@@ -74,7 +74,7 @@ const onSubmit = async () => {
       email: form.email.trim(),
       password: form.password,
     })
-    await router.replace('/')
+    await router.replace('/home')
   } catch {
     // Hata mesajı `authError` (auth store) içinde tutuluyor; UI banner gösterir.
   }
