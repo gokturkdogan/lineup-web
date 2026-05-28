@@ -32,6 +32,10 @@ html, body {
 body {
   position: relative;
   overflow-x: hidden;
+  font-family: $font-family-base;
+  font-weight: $quicksand-regular;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 // =============================================================================
