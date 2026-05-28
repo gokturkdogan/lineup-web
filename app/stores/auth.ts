@@ -1,11 +1,17 @@
 import { defineStore } from 'pinia'
 import { authService } from '~/services/auth.service'
-import { ACCESS_TOKEN_COOKIE } from '~/services/api/api.client'
-import type { LoginPayload } from '~/types/auth'
-import type { User } from '~/types/user'
+import { ACCESS_TOKEN_COOKIE, REFRESH_TOKEN_COOKIE } from '~/services/api/api.client'
+import { decodeJwtPayload } from '~/utils/jwt'
+import type {
+  AccessTokenClaims,
+  AuthTokens,
+  LoginPayload,
+  RegisterOwnerPayload,
+} from '~/types/auth'
+import type { User, UserRole } from '~/types/user'
 
 const USER_COOKIE = 'lineup_user'
-const USER_COOKIE_MAX_AGE = 60 * 60 * 24 * 30 // 30 days
+const USER_COOKIE_MAX_AGE = 60 * 60 * 24 * 30 // 30 gün
 
 interface AuthState {
   user: User | null
@@ -70,10 +76,43 @@ export const useAuthStore = defineStore('auth', {
       }
     },
 
+    /**
+     * Kulüp sahibi (OWNER) kaydı.
+     *
+     * Cevap yalnızca token çiftini içerir; user bilgisi:
+     * - JWT claim'lerinden (`sub`, `organizationId`, `email`, `role`)
+     * - Formdan gelen ad / soyad değerlerinden
+     * birleştirilerek lokal olarak oluşturulur. Böylece ek bir `/users/me`
+     * isteği gerekmez ve kayıt sonrası anında uygulama açılır.
+     */
+    async register(payload: RegisterOwnerPayload) {
+      this.loading = true
+      this.error = null
+      try {
+        const tokens = await authService.registerOwner(payload)
+        const user = this._buildUserFromTokens(tokens, payload)
+        this._setTokens(tokens)
+        this._setUser(user)
+      } catch (err) {
+        const message =
+          (err as { message?: string } | undefined)?.message ??
+          'Kayıt yapılamadı. Lütfen tekrar deneyin.'
+        this.error = message
+        throw err
+      } finally {
+        this.loading = false
+      }
+    },
+
     logout() {
-      this._persist(null, null)
+      this._setTokens(null)
+      this._setUser(null)
       this.error = null
     },
+
+    // -------------------------------------------------------------------
+    // Persistence helpers
+    // -------------------------------------------------------------------
 
     _persist(token: string | null, user: User | null) {
       const tokenCookie = useCookie<string | null>(ACCESS_TOKEN_COOKIE, {
@@ -92,6 +131,51 @@ export const useAuthStore = defineStore('auth', {
       tokenCookie.value = token
       userCookie.value = user
       this.user = user
+    },
+
+    _setTokens(tokens: AuthTokens | null) {
+      const accessCookie = useCookie<string | null>(ACCESS_TOKEN_COOKIE, {
+        sameSite: 'lax',
+        secure: !import.meta.dev,
+        path: '/',
+        maxAge: USER_COOKIE_MAX_AGE,
+      })
+      const refreshCookie = useCookie<string | null>(REFRESH_TOKEN_COOKIE, {
+        sameSite: 'lax',
+        secure: !import.meta.dev,
+        path: '/',
+        maxAge: USER_COOKIE_MAX_AGE,
+      })
+
+      accessCookie.value = tokens?.accessToken ?? null
+      refreshCookie.value = tokens?.refreshToken ?? null
+    },
+
+    _setUser(user: User | null) {
+      const userCookie = useCookie<User | null>(USER_COOKIE, {
+        sameSite: 'lax',
+        secure: !import.meta.dev,
+        path: '/',
+        maxAge: USER_COOKIE_MAX_AGE,
+      })
+      userCookie.value = user
+      this.user = user
+    },
+
+    _buildUserFromTokens(
+      tokens: AuthTokens,
+      payload: RegisterOwnerPayload,
+    ): User {
+      const claims = decodeJwtPayload<AccessTokenClaims>(tokens.accessToken)
+      return {
+        id: claims?.sub ?? '',
+        organizationId: claims?.organizationId ?? '',
+        email: claims?.email ?? payload.email,
+        role: (claims?.role as UserRole) ?? 'OWNER',
+        name: payload.firstName,
+        surname: payload.lastName,
+        avatarUrl: null,
+      }
     },
   },
 })

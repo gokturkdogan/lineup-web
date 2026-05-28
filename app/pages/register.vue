@@ -1,11 +1,19 @@
 <script setup lang="ts">
-import { email as validateEmail, minLength, required } from '~/utils/validators'
+import {
+  email as validateEmail,
+  maxLength,
+  minLength,
+  required,
+} from '~/utils/validators'
 
 definePageMeta({
   layout: 'auth',
   middleware: 'guest',
   title: 'Kayıt ol',
 })
+
+const router = useRouter()
+const { register, loading, error: authError } = useAuth()
 
 const form = reactive({
   name: '',
@@ -29,6 +37,17 @@ const fieldErrors = reactive<{
   confirmPassword: null,
 })
 
+const validateName = (value: string): string | null =>
+  required(value, 'Ad') ?? maxLength(value, 60, 'Ad')
+
+const validateSurname = (value: string): string | null =>
+  required(value, 'Soyad') ?? maxLength(value, 60, 'Soyad')
+
+const validatePassword = (value: string): string | null =>
+  required(value, 'Şifre') ??
+  minLength(value, 8, 'Şifre') ??
+  maxLength(value, 72, 'Şifre')
+
 const validateConfirmPassword = (value: string): string | null => {
   if (!value) return 'Şifre tekrarı zorunludur.'
   if (value !== form.password) return 'Şifreler eşleşmiyor.'
@@ -36,21 +55,34 @@ const validateConfirmPassword = (value: string): string | null => {
 }
 
 const validate = (): boolean => {
-  fieldErrors.name = required(form.name, 'Ad')
-  fieldErrors.surname = required(form.surname, 'Soyad')
+  fieldErrors.name = validateName(form.name)
+  fieldErrors.surname = validateSurname(form.surname)
   fieldErrors.email = validateEmail(form.email)
-  fieldErrors.password = minLength(form.password, 6, 'Şifre')
+  fieldErrors.password = validatePassword(form.password)
   fieldErrors.confirmPassword = validateConfirmPassword(form.confirmPassword)
   return !Object.values(fieldErrors).some(Boolean)
 }
 
-const onSubmit = () => {
+const onSubmit = async () => {
+  if (loading.value) return
   if (!validate()) return
-  // Kayıt API entegrasyonu sonraki aşamada eklenecek.
+
+  try {
+    await register({
+      firstName: form.name.trim(),
+      lastName: form.surname.trim(),
+      email: form.email.trim(),
+      password: form.password,
+    })
+    await router.replace('/')
+  } catch {
+    // Hata mesajı `authError` (auth store) içinde tutuluyor; UI banner gösterir.
+  }
 }
 
 const submitDisabled = computed(
   () =>
+    loading.value ||
     !form.name ||
     !form.surname ||
     !form.email ||
@@ -58,8 +90,8 @@ const submitDisabled = computed(
     !form.confirmPassword,
 )
 
-const isNameValid = computed(() => !required(form.name, 'Ad'))
-const isSurnameValid = computed(() => !required(form.surname, 'Soyad'))
+const isNameValid = computed(() => !validateName(form.name))
+const isSurnameValid = computed(() => !validateSurname(form.surname))
 const isEmailStructurallyValid = computed(() => !validateEmail(form.email))
 </script>
 
@@ -84,7 +116,7 @@ const isEmailStructurallyValid = computed(() => !validateEmail(form.email))
           required
           :valid="isNameValid"
           :error="fieldErrors.name"
-          @blur="fieldErrors.name = required(form.name, 'Ad')"
+          @blur="fieldErrors.name = validateName(form.name)"
         />
 
         <BaseInput
@@ -97,7 +129,7 @@ const isEmailStructurallyValid = computed(() => !validateEmail(form.email))
           required
           :valid="isSurnameValid"
           :error="fieldErrors.surname"
-          @blur="fieldErrors.surname = required(form.surname, 'Soyad')"
+          @blur="fieldErrors.surname = validateSurname(form.surname)"
         />
 
         <BaseInput
@@ -123,7 +155,7 @@ const isEmailStructurallyValid = computed(() => !validateEmail(form.email))
           autocomplete="new-password"
           required
           :error="fieldErrors.password"
-          @blur="fieldErrors.password = minLength(form.password, 6, 'Şifre')"
+          @blur="fieldErrors.password = validatePassword(form.password)"
         />
 
         <BaseInput
@@ -138,13 +170,31 @@ const isEmailStructurallyValid = computed(() => !validateEmail(form.email))
           @blur="fieldErrors.confirmPassword = validateConfirmPassword(form.confirmPassword)"
         />
 
+        <Transition name="register-error">
+          <p v-if="authError" class="register__error" role="alert">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" aria-hidden="true">
+              <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8" />
+              <path d="M12 8v5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+              <circle cx="12" cy="16" r="1" fill="currentColor" />
+            </svg>
+            <span>{{ authError }}</span>
+          </p>
+        </Transition>
+
         <div class="register__action">
           <button
             type="submit"
             class="register__cta"
             :disabled="submitDisabled"
+            :aria-busy="loading || undefined"
           >
-            Kayıt ol
+            <span v-if="loading" class="register__cta-spinner" aria-hidden="true" />
+            <span
+              class="register__cta-label"
+              :class="{ 'register__cta-label--hidden': loading }"
+            >
+              Kayıt ol
+            </span>
           </button>
         </div>
       </form>
@@ -245,6 +295,21 @@ $sheet-radius: 32px;
   animation: register-fade-in 520ms $ease-standard 80ms both;
 }
 
+.register__error {
+  display: flex;
+  align-items: flex-start;
+  gap: $space-2;
+  margin: 0;
+  padding: $space-3 $space-md;
+  background-color: rgba($color-error, 0.08);
+  color: $color-error;
+  font-size: $font-size-sm;
+  line-height: 1.4;
+  border-radius: $radius-md;
+
+  svg { flex: 0 0 auto; margin-top: 1px; }
+}
+
 .register__action {
   margin-top: $space-md;
 }
@@ -300,6 +365,22 @@ $sheet-radius: 32px;
   }
 }
 
+.register__cta-label {
+  transition: opacity $duration-fast $ease-standard;
+
+  &--hidden { opacity: 0; }
+}
+
+.register__cta-spinner {
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 2px solid rgba(#fff, 0.4);
+  border-right-color: #fff;
+  animation: register-spin 0.7s linear infinite;
+}
+
 .register__signin {
   margin: 0;
   margin-top: auto;
@@ -335,4 +416,19 @@ $sheet-radius: 32px;
   to   { opacity: 1; transform: translateY(0); }
 }
 
+@keyframes register-spin {
+  to { transform: rotate(360deg); }
+}
+
+.register-error-enter-active,
+.register-error-leave-active {
+  transition:
+    opacity $duration-base $ease-standard,
+    transform $duration-base $ease-standard;
+}
+.register-error-enter-from,
+.register-error-leave-to {
+  opacity: 0;
+  transform: translateY(-4px);
+}
 </style>
