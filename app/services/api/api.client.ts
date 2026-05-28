@@ -18,10 +18,11 @@ export const ACCESS_TOKEN_COOKIE = 'access_token'
  */
 export const REFRESH_TOKEN_COOKIE = 'refresh_token'
 
-/**
- * The login route — guarded against accidental drift.
- */
-export const LOGIN_ROUTE = '/login'
+/** Karşılama ekranı — oturumsuz kullanıcının giriş noktası. */
+export const WELCOME_ROUTE = '/'
+
+/** Oturum gerektirmeyen auth sayfaları (401 yönlendirmesi atlanır). */
+export const GUEST_AUTH_ROUTES = ['/', '/login', '/register'] as const
 
 let _instance: AxiosInstance | null = null
 let _redirectingToLogin = false
@@ -101,11 +102,11 @@ export const useApiClient = (): AxiosInstance => {
       const route = useRoute()
 
       if (_redirectingToLogin) return
-      if (route.path === LOGIN_ROUTE) return
+      if (GUEST_AUTH_ROUTES.includes(route.path as (typeof GUEST_AUTH_ROUTES)[number])) return
 
       _redirectingToLogin = true
       router
-        .replace({ path: LOGIN_ROUTE, query: { redirect: route.fullPath } })
+        .replace({ path: WELCOME_ROUTE, query: { redirect: route.fullPath } })
         .finally(() => {
           _redirectingToLogin = false
         })
