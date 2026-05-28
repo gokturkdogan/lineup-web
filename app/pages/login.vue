@@ -119,7 +119,7 @@ const isEmailStructurallyValid = computed(
 
       <p class="login__signup">
         <span class="login__signup-prompt">Hesabın yok mu?</span>
-        <a class="login__signup-link" href="#" @click.prevent>Kayıt ol</a>
+        <NuxtLink class="login__signup-link" to="/register">Kayıt ol</NuxtLink>
       </p>
     </section>
   </div>
