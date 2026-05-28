@@ -13,6 +13,12 @@ import { ApiError, type ApiErrorBody } from '~/types/api'
 export const ACCESS_TOKEN_COOKIE = 'access_token'
 
 /**
+ * Cookie that stores the opaque refresh token (not a JWT).
+ * Used by `POST /auth/refresh` when the access token expires.
+ */
+export const REFRESH_TOKEN_COOKIE = 'refresh_token'
+
+/**
  * The login route — guarded against accidental drift.
  */
 export const LOGIN_ROUTE = '/login'
@@ -50,7 +56,7 @@ const createApiClient = ({
   instance.interceptors.response.use(
     (response) => response,
     (error: AxiosError<ApiErrorBody>) => {
-      const status = error.response?.status ?? 0
+      const status = error.response?.status ?? error.response?.data?.meta?.statusCode ?? 0
       const body = error.response?.data
       const message =
         body?.message ||

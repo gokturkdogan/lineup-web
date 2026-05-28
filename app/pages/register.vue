@@ -1,30 +1,66 @@
 <script setup lang="ts">
-import { email as validateEmail, required } from '~/utils/validators'
+import {
+  email as validateEmail,
+  maxLength,
+  minLength,
+  required,
+} from '~/utils/validators'
 
 definePageMeta({
   layout: 'auth',
   middleware: 'guest',
-  title: 'Giriş yap',
+  title: 'Kayıt ol',
 })
 
-const route = useRoute()
 const router = useRouter()
-const { login, loading, error: authError } = useAuth()
+const { register, loading, error: authError } = useAuth()
 
 const form = reactive({
+  name: '',
+  surname: '',
   email: '',
   password: '',
+  confirmPassword: '',
 })
 
-const fieldErrors = reactive<{ email: string | null; password: string | null }>({
+const fieldErrors = reactive<{
+  name: string | null
+  surname: string | null
+  email: string | null
+  password: string | null
+  confirmPassword: string | null
+}>({
+  name: null,
+  surname: null,
   email: null,
   password: null,
+  confirmPassword: null,
 })
 
+const validateName = (value: string): string | null =>
+  required(value, 'Ad') ?? maxLength(value, 60, 'Ad')
+
+const validateSurname = (value: string): string | null =>
+  required(value, 'Soyad') ?? maxLength(value, 60, 'Soyad')
+
+const validatePassword = (value: string): string | null =>
+  required(value, 'Şifre') ??
+  minLength(value, 8, 'Şifre') ??
+  maxLength(value, 72, 'Şifre')
+
+const validateConfirmPassword = (value: string): string | null => {
+  if (!value) return 'Şifre tekrarı zorunludur.'
+  if (value !== form.password) return 'Şifreler eşleşmiyor.'
+  return null
+}
+
 const validate = (): boolean => {
+  fieldErrors.name = validateName(form.name)
+  fieldErrors.surname = validateSurname(form.surname)
   fieldErrors.email = validateEmail(form.email)
-  fieldErrors.password = required(form.password, 'Şifre')
-  return !fieldErrors.email && !fieldErrors.password
+  fieldErrors.password = validatePassword(form.password)
+  fieldErrors.confirmPassword = validateConfirmPassword(form.confirmPassword)
+  return !Object.values(fieldErrors).some(Boolean)
 }
 
 const onSubmit = async () => {
@@ -32,37 +68,70 @@ const onSubmit = async () => {
   if (!validate()) return
 
   try {
-    await login({ email: form.email.trim(), password: form.password })
-    const redirect =
-      typeof route.query.redirect === 'string' ? route.query.redirect : '/'
-    await router.replace(redirect)
+    await register({
+      firstName: form.name.trim(),
+      lastName: form.surname.trim(),
+      email: form.email.trim(),
+      password: form.password,
+    })
+    await router.replace('/')
   } catch {
-    // Hata mesajı auth store içinde (`authError`) tutuluyor.
+    // Hata mesajı `authError` (auth store) içinde tutuluyor; UI banner gösterir.
   }
 }
 
 const submitDisabled = computed(
-  () => loading.value || !form.email || !form.password,
+  () =>
+    loading.value ||
+    !form.name ||
+    !form.surname ||
+    !form.email ||
+    !form.password ||
+    !form.confirmPassword,
 )
 
-// Inline doğrulama — kullanıcı yazarken e-posta yapısal olarak geçerliyse
-// trailing check ikonunu göstermek için kullanılıyor.
-const isEmailStructurallyValid = computed(
-  () => !validateEmail(form.email),
-)
+const isNameValid = computed(() => !validateName(form.name))
+const isSurnameValid = computed(() => !validateSurname(form.surname))
+const isEmailStructurallyValid = computed(() => !validateEmail(form.email))
 </script>
 
 <template>
-  <div class="login">
-    <header class="login__hero">
-      <h1 class="login__hero-title">
-        <span>Hoş geldin</span>
-        <span>Giriş yap!</span>
+  <div class="register">
+    <header class="register__hero">
+      <h1 class="register__hero-title">
+        <span>Hesabını</span>
+        <span>oluştur!</span>
       </h1>
     </header>
 
-    <section class="login__sheet">
-      <form id="login-form" class="login__form" novalidate @submit.prevent="onSubmit">
+    <section class="register__sheet">
+      <form id="register-form" class="register__form" novalidate @submit.prevent="onSubmit">
+        <BaseInput
+          v-model="form.name"
+          variant="underlined"
+          label="Ad"
+          type="text"
+          placeholder="Ahmet"
+          autocomplete="given-name"
+          required
+          :valid="isNameValid"
+          :error="fieldErrors.name"
+          @blur="fieldErrors.name = validateName(form.name)"
+        />
+
+        <BaseInput
+          v-model="form.surname"
+          variant="underlined"
+          label="Soyad"
+          type="text"
+          placeholder="Yılmaz"
+          autocomplete="family-name"
+          required
+          :valid="isSurnameValid"
+          :error="fieldErrors.surname"
+          @blur="fieldErrors.surname = validateSurname(form.surname)"
+        />
+
         <BaseInput
           v-model="form.email"
           variant="underlined"
@@ -83,16 +152,26 @@ const isEmailStructurallyValid = computed(
           label="Şifre"
           type="password"
           placeholder="••••••••"
-          autocomplete="current-password"
+          autocomplete="new-password"
           required
           :error="fieldErrors.password"
-          @blur="fieldErrors.password = required(form.password, 'Şifre')"
+          @blur="fieldErrors.password = validatePassword(form.password)"
         />
 
-        <a class="login__forgot" href="#" @click.prevent>Şifremi unuttum?</a>
+        <BaseInput
+          v-model="form.confirmPassword"
+          variant="underlined"
+          label="Şifre tekrar"
+          type="password"
+          placeholder="••••••••"
+          autocomplete="new-password"
+          required
+          :error="fieldErrors.confirmPassword"
+          @blur="fieldErrors.confirmPassword = validateConfirmPassword(form.confirmPassword)"
+        />
 
-        <Transition name="login-error">
-          <p v-if="authError" class="login__error" role="alert">
+        <Transition name="register-error">
+          <p v-if="authError" class="register__error" role="alert">
             <svg viewBox="0 0 24 24" width="16" height="16" fill="none" aria-hidden="true">
               <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8" />
               <path d="M12 8v5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
@@ -102,24 +181,27 @@ const isEmailStructurallyValid = computed(
           </p>
         </Transition>
 
-        <div class="login__action">
+        <div class="register__action">
           <button
             type="submit"
-            class="login__cta"
+            class="register__cta"
             :disabled="submitDisabled"
             :aria-busy="loading || undefined"
           >
-            <span v-if="loading" class="login__cta-spinner" aria-hidden="true" />
-            <span class="login__cta-label" :class="{ 'login__cta-label--hidden': loading }">
-              Giriş yap
+            <span v-if="loading" class="register__cta-spinner" aria-hidden="true" />
+            <span
+              class="register__cta-label"
+              :class="{ 'register__cta-label--hidden': loading }"
+            >
+              Kayıt ol
             </span>
           </button>
         </div>
       </form>
 
-      <p class="login__signup">
-        <span class="login__signup-prompt">Hesabın yok mu?</span>
-        <NuxtLink class="login__signup-link" to="/register">Kayıt ol</NuxtLink>
+      <p class="register__signin">
+        <span class="register__signin-prompt">Zaten hesabın var mı?</span>
+        <NuxtLink class="register__signin-link" to="/login">Giriş yap</NuxtLink>
       </p>
     </section>
   </div>
@@ -130,17 +212,14 @@ $hero-min-height: 280px;
 $sheet-overlap: 32px;
 $sheet-radius: 32px;
 
-.login {
+.register {
   display: flex;
   flex-direction: column;
   min-height: 100dvh;
   background-color: $color-surface;
 }
 
-// =====================================================================
-// Hero
-// =====================================================================
-.login__hero {
+.register__hero {
   position: relative;
   min-height: $hero-min-height;
   padding: $space-lg $space-lg ($sheet-overlap + $space-xl);
@@ -158,7 +237,6 @@ $sheet-radius: 32px;
       #064e3b 100%
     );
 
-  // Soft decorative orbs — referansa benzer derinlik
   &::before,
   &::after {
     content: '';
@@ -182,7 +260,7 @@ $sheet-radius: 32px;
   }
 }
 
-.login__hero-title {
+.register__hero-title {
   position: relative;
   z-index: 1;
   display: flex;
@@ -192,14 +270,11 @@ $sheet-radius: 32px;
   font-weight: $font-weight-bold;
   line-height: 1.05;
   letter-spacing: -0.02em;
-  animation: login-fade-in 480ms $ease-standard both;
   color: #fff;
+  animation: register-fade-in 480ms $ease-standard both;
 }
 
-// =====================================================================
-// Sheet
-// =====================================================================
-.login__sheet {
+.register__sheet {
   position: relative;
   margin-top: -$sheet-overlap;
   padding: ($space-xl + $space-2) $space-lg $space-lg;
@@ -213,35 +288,14 @@ $sheet-radius: 32px;
   @include safe-area-bottom($space-md);
 }
 
-.login__form {
+.register__form {
   display: flex;
   flex-direction: column;
   gap: $space-lg;
-  animation: login-fade-in 520ms $ease-standard 80ms both;
+  animation: register-fade-in 520ms $ease-standard 80ms both;
 }
 
-// =====================================================================
-// Forgot password
-// =====================================================================
-.login__forgot {
-  align-self: flex-end;
-  margin-top: -$space-2;
-  color: $color-primary;
-  font-size: $font-size-sm;
-  font-weight: $font-weight-semibold;
-  text-decoration: none;
-  @include focus-ring;
-  @include tap-highlight-off;
-
-  @include media-hover {
-    &:hover { color: $color-primary-hover; }
-  }
-}
-
-// =====================================================================
-// Error banner
-// =====================================================================
-.login__error {
+.register__error {
   display: flex;
   align-items: flex-start;
   gap: $space-2;
@@ -256,14 +310,11 @@ $sheet-radius: 32px;
   svg { flex: 0 0 auto; margin-top: 1px; }
 }
 
-// =====================================================================
-// CTA — pill, gradient yeşil
-// =====================================================================
-.login__action {
-  margin-top: $space-lg;
+.register__action {
+  margin-top: $space-md;
 }
 
-.login__cta {
+.register__cta {
   @include reset-button;
   position: relative;
   display: flex;
@@ -314,26 +365,23 @@ $sheet-radius: 32px;
   }
 }
 
-.login__cta-label {
+.register__cta-label {
   transition: opacity $duration-fast $ease-standard;
 
   &--hidden { opacity: 0; }
 }
 
-.login__cta-spinner {
+.register__cta-spinner {
   position: absolute;
   width: 20px;
   height: 20px;
   border-radius: 50%;
   border: 2px solid rgba(#fff, 0.4);
   border-right-color: #fff;
-  animation: login-spin 0.7s linear infinite;
+  animation: register-spin 0.7s linear infinite;
 }
 
-// =====================================================================
-// Signup
-// =====================================================================
-.login__signup {
+.register__signin {
   margin: 0;
   margin-top: auto;
   padding-top: $space-xl;
@@ -345,12 +393,12 @@ $sheet-radius: 32px;
   line-height: $line-height-tight;
 }
 
-.login__signup-prompt {
+.register__signin-prompt {
   color: $color-text-muted;
   font-size: $font-size-sm;
 }
 
-.login__signup-link {
+.register__signin-link {
   color: $color-text;
   font-size: $font-size-md;
   font-weight: $font-weight-bold;
@@ -363,26 +411,23 @@ $sheet-radius: 32px;
   }
 }
 
-// =====================================================================
-// Motion
-// =====================================================================
-@keyframes login-fade-in {
+@keyframes register-fade-in {
   from { opacity: 0; transform: translateY(8px); }
   to   { opacity: 1; transform: translateY(0); }
 }
 
-@keyframes login-spin {
+@keyframes register-spin {
   to { transform: rotate(360deg); }
 }
 
-.login-error-enter-active,
-.login-error-leave-active {
+.register-error-enter-active,
+.register-error-leave-active {
   transition:
     opacity $duration-base $ease-standard,
     transform $duration-base $ease-standard;
 }
-.login-error-enter-from,
-.login-error-leave-to {
+.register-error-enter-from,
+.register-error-leave-to {
   opacity: 0;
   transform: translateY(-4px);
 }

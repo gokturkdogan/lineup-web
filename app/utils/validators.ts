@@ -14,7 +14,20 @@ export const email = (value: string | null | undefined): string | null => {
   return null
 }
 
-export const minLength = (value: string | null | undefined, min: number, label = 'Bu alan'): string | null => {
+export const minLength = (
+  value: string | null | undefined,
+  min: number,
+  label = 'Bu alan',
+): string | null => {
   if (!value || value.length < min) return `${label} en az ${min} karakter olmalıdır.`
+  return null
+}
+
+export const maxLength = (
+  value: string | null | undefined,
+  max: number,
+  label = 'Bu alan',
+): string | null => {
+  if (value && value.length > max) return `${label} en fazla ${max} karakter olabilir.`
   return null
 }

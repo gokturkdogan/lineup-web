@@ -20,6 +20,7 @@ export const useAuth = () => {
 
     // Actions
     login: authStore.login,
+    register: authStore.register,
     logout: authStore.logout,
   }
 }
