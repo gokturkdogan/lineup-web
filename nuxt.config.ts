@@ -2,6 +2,8 @@ import { fileURLToPath } from 'node:url'
 
 const abstractsDir = fileURLToPath(new URL('./app/assets/styles/abstracts/', import.meta.url))
 
+const isDev = process.env.NODE_ENV !== 'production'
+
 export default defineNuxtConfig({
   compatibilityDate: '2025-01-01',
   srcDir: 'app/',
@@ -14,6 +16,11 @@ export default defineNuxtConfig({
   ssr: true,
 
   modules: ['@pinia/nuxt'],
+
+  // Figma handoff — yalnızca development (`dev-plugins/` otomatik taranmaz).
+  plugins: isDev
+    ? [{ src: '~/dev-plugins/figma-toolbar.client.ts', mode: 'client' }]
+    : [],
 
   pinia: {
     storesDirs: ['./app/stores/**'],
