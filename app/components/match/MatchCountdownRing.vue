@@ -6,9 +6,6 @@ interface Props {
 
 const props = defineProps<Props>()
 
-const RING_RADIUS = 52
-const RING_CIRCUMFERENCE = 2 * Math.PI * RING_RADIUS
-
 const COUNTDOWN_GREEN = '#22c55e'
 const COUNTDOWN_YELLOW = '#facc15'
 const COUNTDOWN_ORANGE = '#f97316'
@@ -16,6 +13,11 @@ const COUNTDOWN_RED = '#ef4444'
 
 const HOUR_MS = 3_600_000
 const FOUR_HOURS_MS = 4 * HOUR_MS
+
+const route = useRoute()
+const isFigmaCapture = computed(
+  () => route.query.figma === '1' || route.query.figma === 'true',
+)
 
 const hours = ref(0)
 const minutes = ref(0)
@@ -72,9 +74,8 @@ function tick() {
 
 const ringColor = computed(() => colorFromRemaining(remainingMs.value))
 
-const ringStyle = computed(() => ({
-  stroke: ringColor.value,
-  filter: `drop-shadow(0 0 7px ${ringColor.value}88)`,
+const ringBorderStyle = computed(() => ({
+  borderColor: ringColor.value,
 }))
 
 const digitStyle = computed(() => ({
@@ -107,34 +108,22 @@ watch(() => props.target, () => {
 <template>
   <div
     class="match-countdown"
+    :class="{ 'match-countdown--figma': isFigmaCapture }"
     role="timer"
     aria-live="polite"
     :aria-label="ariaLabel"
   >
     <div class="match-countdown__ring-wrap">
-      <svg
-        class="match-countdown__svg"
-        viewBox="0 0 120 120"
+      <!-- Figma capture: SVG stroke yerine düz div border (html-to-design uyumlu) -->
+      <div
+        class="match-countdown__ring match-countdown__ring--track"
         aria-hidden="true"
-      >
-        <circle
-          class="match-countdown__track"
-          cx="60"
-          cy="60"
-          :r="RING_RADIUS"
-          fill="none"
-        />
-        <circle
-          class="match-countdown__ring"
-          cx="60"
-          cy="60"
-          :r="RING_RADIUS"
-          fill="none"
-          :stroke-dasharray="RING_CIRCUMFERENCE"
-          stroke-dashoffset="0"
-          :style="ringStyle"
-        />
-      </svg>
+      />
+      <div
+        class="match-countdown__ring match-countdown__ring--color"
+        aria-hidden="true"
+        :style="ringBorderStyle"
+      />
 
       <div class="match-countdown__face">
         <p
@@ -172,37 +161,46 @@ watch(() => props.target, () => {
 
   &__ring-wrap {
     position: relative;
-    width: min(100%, 140px);
-    aspect-ratio: 1;
-  }
-
-  &__svg {
-    display: block;
-    width: 100%;
-    height: 100%;
-    transform: rotate(-90deg);
-  }
-
-  &__track {
-    stroke: rgba($color-error, 0.22);
-    stroke-width: 7;
+    width: 140px;
+    height: 140px;
+    max-width: 100%;
+    flex-shrink: 0;
   }
 
   &__ring {
-    stroke-width: 7;
-    stroke-linecap: round;
-    transition: stroke 0.5s ease, filter 0.5s ease;
+    position: absolute;
+    inset: 0;
+    box-sizing: border-box;
+    border-radius: 50%;
+    border: 7px solid transparent;
+    pointer-events: none;
+
+    &--track {
+      border-color: rgba(239, 68, 68, 0.22);
+      z-index: 0;
+    }
+
+    &--color {
+      z-index: 1;
+      transition: border-color 0.5s ease;
+    }
   }
 
   &__face {
     position: absolute;
     inset: 12%;
+    z-index: 2;
     @include flex-center;
     border-radius: 50%;
     background: linear-gradient(160deg, #0f172a 0%, #1e293b 100%);
     box-shadow:
       inset 0 1px 0 rgba(#fff, 0.06),
       0 4px 12px rgba(#000, 0.15);
+  }
+
+  &--figma &__face {
+    background: #1e293b;
+    box-shadow: none;
   }
 
   &__played {

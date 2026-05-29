@@ -33,8 +33,8 @@ const centerFab = {
 
 const route = useRoute()
 
-/** Geçici mock — organizasyon active önizlemesi; bitince `null` yap veya kaldır */
-const MOCK_ACTIVE_TO: string | null = '/organization'
+/** Geçici mock — maçlar active önizlemesi; bitince `null` yap veya kaldır */
+const MOCK_ACTIVE_TO: string | null = '/matches'
 
 const leftItems = computed(() => items.filter((item) => item.side === 'left'))
 const rightItems = computed(() => items.filter((item) => item.side === 'right'))
@@ -50,11 +50,22 @@ const isSideItemActive = (to: string) => {
   if (MOCK_ACTIVE_TO) return to === MOCK_ACTIVE_TO
   return isActive(to) && !isCenterActive.value
 }
+
+/** SVG gradient — hex literal (Figma capture var() çözmez) */
+const BNB_GRAD = {
+  start: '#1cb054',
+  mid: '#16a34a',
+  deep: '#15803d',
+  end: '#064e3b',
+} as const
 </script>
 
 <template>
   <nav class="bnb45" aria-label="Ana menü">
     <div class="bnb45__track">
+      <!-- Figma capture: CSS gradient (html-to-design uyumlu) -->
+      <div class="bnb45__figma-bg" aria-hidden="true" />
+
       <svg
         class="bnb45__shape"
         viewBox="0 0 428 107"
@@ -70,10 +81,10 @@ const isSideItemActive = (to: string) => {
             y2="107"
             gradientUnits="userSpaceOnUse"
           >
-            <stop offset="0%" stop-color="var(--bnb-grad-start)" />
-            <stop offset="35%" stop-color="var(--bnb-grad-mid)" />
-            <stop offset="70%" stop-color="var(--bnb-grad-deep)" />
-            <stop offset="100%" stop-color="var(--bnb-grad-end)" />
+            <stop offset="0%" :stop-color="BNB_GRAD.start" />
+            <stop offset="35%" :stop-color="BNB_GRAD.mid" />
+            <stop offset="70%" :stop-color="BNB_GRAD.deep" />
+            <stop offset="100%" :stop-color="BNB_GRAD.end" />
           </linearGradient>
         </defs>
         <path
@@ -170,6 +181,22 @@ $bnb-fab-shadow: 0 4px 14px rgba(#000, 0.22);
     padding-bottom: env(safe-area-inset-bottom, 0px);
     pointer-events: auto;
     filter: drop-shadow(0 -4px 20px rgba($bnb-grad-end, 0.35));
+  }
+
+  &__figma-bg {
+    display: none;
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      135deg,
+      #{$bnb-grad-start} 0%,
+      #{$bnb-grad-mid} 35%,
+      #{$bnb-grad-deep} 70%,
+      #{$bnb-grad-end} 100%
+    );
+    border-top-left-radius: $radius-2xl;
+    border-top-right-radius: $radius-2xl;
+    pointer-events: none;
   }
 
   &__shape {
@@ -302,6 +329,20 @@ $bnb-fab-shadow: 0 4px 14px rgba(#000, 0.22);
     &--active {
       box-shadow: 0 6px 18px rgba(#000, 0.28);
     }
+  }
+}
+
+:global(html.lineup-figma-capture) {
+  .bnb45__figma-bg {
+    display: block;
+  }
+
+  .bnb45__shape {
+    display: none;
+  }
+
+  .bnb45__track {
+    filter: none;
   }
 }
 </style>

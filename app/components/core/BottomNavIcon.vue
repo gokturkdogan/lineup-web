@@ -10,7 +10,14 @@ withDefaults(defineProps<Props>(), {
 </script>
 
 <template>
+  <SoccerBallIcon
+    v-if="icon === 'matches'"
+    :size="24"
+    class="bnb-icon"
+    :class="{ 'bnb-icon--active': active }"
+  />
   <svg
+    v-else
     viewBox="0 0 24 24"
     width="24"
     height="24"
@@ -60,25 +67,6 @@ withDefaults(defineProps<Props>(), {
       </template>
     </template>
 
-    <!-- Maçlar (tab) -->
-    <template v-else-if="icon === 'matches'">
-      <circle
-        cx="12"
-        cy="12"
-        r="8.2"
-        :stroke="active ? 'none' : 'currentColor'"
-        :fill="active ? 'currentColor' : 'none'"
-        :stroke-width="active ? 0 : 1.65"
-      />
-      <path
-        v-if="!active"
-        d="M12 5.5l2.5 1.8-1 3-3 0-1-3L12 5.5zM7.5 11l-1.7 2.5 1.2 2.6 3 .2 1.4-2.8L9 11l-1.5 0zM16.5 11L18.2 13.5l-1.2 2.6-3 .2-1.4-2.8L15 11l1.5 0z"
-        stroke="currentColor"
-        stroke-width="1.35"
-        stroke-linejoin="round"
-      />
-    </template>
-
     <!-- Oyuncular -->
     <template v-else-if="icon === 'players'">
       <circle cx="9" cy="9" r="3.2" :stroke="active ? 'none' : 'currentColor'" :fill="active ? 'currentColor' : 'none'" :stroke-width="1.65" />
@@ -117,5 +105,9 @@ withDefaults(defineProps<Props>(), {
 .bnb-icon {
   display: block;
   color: inherit;
+
+  &--active {
+    opacity: 1;
+  }
 }
 </style>

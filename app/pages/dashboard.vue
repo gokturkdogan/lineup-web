@@ -38,12 +38,32 @@ const quickActions = [
   },
 ]
 
-const upcomingMatch = {
+interface UpcomingMatch {
+  title: string
+  location: string
+  dateLabel: string
+  dateFull: string
+  startsAt: string
+  daysUntil: number
+  format: string
+  attendance: {
+    confirmed: number
+    declined: number
+    pending: number
+    capacity: number
+  }
+}
+
+/** API entegrasyonu gelene kadar — `null` = henüz maç yok senaryosu */
+const upcomingMatch = ref<UpcomingMatch | null>(null)
+
+/** Dolu kart önizlemesi için mock veriyi buraya ata:
+upcomingMatch.value = {
   title: 'Cumartesi Halı Saha Maçı',
   location: 'Kadıköy Spor Tesisleri',
   dateLabel: 'Cumartesi, 14:00',
   dateFull: '31 Mayıs 2026',
-  startsAt: '2026-05-29T19:45:00',
+  startsAt: '2026-05-29T18:00:00',
   daysUntil: 2,
   format: '7v7 · Halı saha',
   attendance: {
@@ -53,9 +73,12 @@ const upcomingMatch = {
     capacity: 16,
   },
 }
+*/
 
 const squadFillPercent = computed(() => {
-  const { confirmed, capacity } = upcomingMatch.attendance
+  const match = upcomingMatch.value
+  if (!match) return 0
+  const { confirmed, capacity } = match.attendance
   if (!capacity) return 0
   return Math.min(100, Math.round((confirmed / capacity) * 100))
 })
@@ -107,10 +130,7 @@ const squadFillPercent = computed(() => {
             :class="{ 'dashboard__action--accent': action.accent }"
           >
             <span class="dashboard__action-icon" aria-hidden="true">
-              <svg v-if="action.icon === 'match'" viewBox="0 0 24 24" width="20" height="20" fill="none">
-                <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8" />
-                <path d="M12 6l2 1.5-1 2.8H11L10 7.5 12 6z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" />
-              </svg>
+              <SoccerBallIcon v-if="action.icon === 'match'" :size="20" />
               <svg v-else viewBox="0 0 24 24" width="20" height="20" fill="none">
                 <circle cx="9" cy="8" r="3.5" stroke="currentColor" stroke-width="1.8" />
                 <path d="M3 19c.8-3 3.4-4.8 6-4.8s5.2 1.8 6 4.8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
@@ -128,7 +148,7 @@ const squadFillPercent = computed(() => {
           <NuxtLink class="dashboard__section-link" to="/matches">Tümü</NuxtLink>
         </div>
 
-        <BaseCard padding="none" class="dashboard__upcoming">
+        <BaseCard v-if="upcomingMatch" padding="none" class="dashboard__upcoming">
           <div class="dashboard__upcoming-head">
             <span class="dashboard__upcoming-badge">Yaklaşan</span>
             <span class="dashboard__upcoming-countdown">{{ upcomingMatch.daysUntil }} gün kaldı</span>
@@ -217,6 +237,24 @@ const squadFillPercent = computed(() => {
                 </div>
               </div>
             </div>
+          </div>
+        </BaseCard>
+
+        <BaseCard v-else padding="none" class="dashboard__upcoming dashboard__upcoming--empty">
+          <div class="dashboard__upcoming-empty">
+            <div class="dashboard__upcoming-empty-icon" aria-hidden="true">
+              <SoccerBallIcon :size="28" />
+            </div>
+
+            <h3 class="dashboard__upcoming-empty-title">Henüz maç oluşturulmadı</h3>
+            <p class="dashboard__upcoming-empty-text">
+              İlk maçını planlayarak kadro ve katılım takibine başlayabilirsin.
+            </p>
+
+            <NuxtLink to="/matches" class="dashboard__upcoming-empty-cta">
+              <SoccerBallIcon :size="18" />
+              Maç oluştur
+            </NuxtLink>
           </div>
         </BaseCard>
       </section>
@@ -645,6 +683,88 @@ const squadFillPercent = computed(() => {
   color: $color-text-muted;
   text-align: center;
   line-height: 1.2;
+}
+
+.dashboard__upcoming--empty {
+  border: 1px dashed rgba($color-primary, 0.22);
+  background:
+    linear-gradient(
+      180deg,
+      rgba($color-primary, 0.04) 0%,
+      rgba($color-primary, 0.01) 100%
+    );
+}
+
+.dashboard__upcoming-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: $space-sm;
+  padding: $space-xl $space-lg;
+}
+
+.dashboard__upcoming-empty-icon {
+  @include flex-center;
+  width: 56px;
+  height: 56px;
+  margin-bottom: $space-1;
+  border-radius: $radius-xl;
+  background: rgba($color-primary, 0.1);
+  color: $color-primary;
+}
+
+.dashboard__upcoming-empty-title {
+  margin: 0;
+  font-size: $font-size-md;
+  font-weight: $font-weight-semibold;
+  color: $color-text;
+  letter-spacing: -0.01em;
+}
+
+.dashboard__upcoming-empty-text {
+  margin: 0;
+  max-width: 260px;
+  font-size: $font-size-sm;
+  line-height: 1.45;
+  color: $color-text-muted;
+}
+
+.dashboard__upcoming-empty-cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: $space-2;
+  margin-top: $space-sm;
+  min-height: 44px;
+  padding: 0 $space-lg;
+  border-radius: $radius-pill;
+  background: linear-gradient(
+    135deg,
+    lighten($color-primary, 2%) 0%,
+    $color-primary 55%,
+    $color-primary-hover 100%
+  );
+  color: #fff;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-semibold;
+  text-decoration: none;
+  box-shadow: 0 8px 20px rgba($color-primary, 0.24);
+  transition:
+    transform $duration-fast $ease-standard,
+    box-shadow $duration-fast $ease-standard;
+  @include tap-highlight-off;
+  @include focus-ring($color-primary);
+
+  @include media-hover {
+    &:hover {
+      box-shadow: 0 10px 24px rgba($color-primary, 0.3);
+    }
+  }
+
+  &:active {
+    transform: scale(0.98);
+  }
 }
 
 @keyframes dashboard-fade-in {

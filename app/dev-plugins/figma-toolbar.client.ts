@@ -11,6 +11,7 @@ const TOOLBAR_HASH = 'figmacapture'
 
 let scriptReady: Promise<void> | null = null
 let toolbarOpen = false
+let openingToolbar = false
 
 const loadCaptureScript = (): Promise<void> => {
   if (scriptReady) return scriptReady
@@ -55,34 +56,65 @@ const removeLauncher = () => {
   document.getElementById(LAUNCHER_ID)?.remove()
 }
 
-/** Toolbar'ı kullanıcı tıklamasıyla aç (bookmarklet deseni). */
-const openToolbar = async () => {
-  if (toolbarOpen && location.hash.includes('figmacapture')) return
+const isCaptureHashActive = () => location.hash.includes(TOOLBAR_HASH)
 
+/** Hash sonrası script hash'i görsün diye bookmarklet deseni — tek seferlik. */
+const reinjectCaptureScript = async () => {
+  await new Promise((r) => window.setTimeout(r, 200))
+  const reinject = document.createElement('script')
+  reinject.src = CAPTURE_SCRIPT
+  document.head.appendChild(reinject)
+}
+
+/** Toolbar'ı kullanıcı tıklamasıyla aç. */
+const openToolbar = async () => {
+  if (openingToolbar) return
+  if (toolbarOpen && isCaptureHashActive()) return
+
+  openingToolbar = true
   removeLauncher()
 
   try {
-    await loadCaptureScript()
-
-    if (!location.hash.includes('figmacapture')) {
+    if (!isCaptureHashActive()) {
       const url = `${location.pathname}${location.search}#${TOOLBAR_HASH}`
       history.replaceState(history.state, '', url)
     }
 
-    // Hash sonrası script bazen toolbar'ı göstermez — bookmarklet ile yeniden yükle.
-    await new Promise((r) => window.setTimeout(r, 200))
-    const reinject = document.createElement('script')
-    reinject.src = CAPTURE_SCRIPT
-    document.head.appendChild(reinject)
+    await loadCaptureScript()
+    await reinjectCaptureScript()
 
     toolbarOpen = true
   } catch {
+    toolbarOpen = false
+    if (isCaptureHashActive()) {
+      history.replaceState(
+        history.state,
+        '',
+        `${location.pathname}${location.search}`,
+      )
+    }
     alert('Figma capture script yüklenemedi. Ağı / reklam engelleyiciyi kontrol et.')
     mountLauncher()
+  } finally {
+    openingToolbar = false
   }
 }
 
+const closeToolbar = () => {
+  if (!isCaptureHashActive()) return
+
+  history.replaceState(
+    history.state,
+    '',
+    `${location.pathname}${location.search}`,
+  )
+  toolbarOpen = false
+  mountLauncher()
+}
+
 const mountLauncher = () => {
+  if (isCaptureHashActive()) return
+
   removeLauncher()
 
   const btn = document.createElement('button')
@@ -122,7 +154,6 @@ const isFigmaMode = (query: Record<string, unknown>): boolean => {
 }
 
 export default defineNuxtPlugin(() => {
-  // Çift koruma: config'te `dev: true` olsa bile prod'da çalışmasın.
   if (!import.meta.dev) return
 
   const route = useRoute()
@@ -137,9 +168,12 @@ export default defineNuxtPlugin(() => {
   const boot = () => {
     if (!syncMode()) return
 
-    toolbarOpen = false
-    void loadCaptureScript()
-    mountLauncher()
+    toolbarOpen = isCaptureHashActive()
+    if (toolbarOpen) {
+      void loadCaptureScript().then(() => reinjectCaptureScript())
+    } else {
+      mountLauncher()
+    }
   }
 
   if (document.readyState === 'loading') {
@@ -152,18 +186,25 @@ export default defineNuxtPlugin(() => {
     if (sessionStorage.getItem(SESSION_KEY) !== '1') return
     if (event.altKey && event.shiftKey && event.code === 'KeyF') {
       event.preventDefault()
-      void openToolbar()
+      if (isCaptureHashActive()) {
+        closeToolbar()
+      } else {
+        void openToolbar()
+      }
     }
   }
 
   window.addEventListener('keydown', onKeydown)
 
+  // Yalnızca sayfa değişince toolbar kapat — hash (#figmacapture) toolbar açıkken kalır.
   watch(
-    () => route.fullPath,
+    () => route.path,
     () => {
       if (!syncMode()) return
+      if (openingToolbar) return
+
       toolbarOpen = false
-      if (location.hash.includes('figmacapture')) {
+      if (isCaptureHashActive()) {
         history.replaceState(
           history.state,
           '',
