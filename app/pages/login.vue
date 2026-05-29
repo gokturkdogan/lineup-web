@@ -61,6 +61,9 @@ const notice = computed<string | null>(() => {
   if (route.query.reason === 'verify-email') {
     return 'Doğrulama e-postanı yeniden göndermek için önce giriş yapman gerekiyor.'
   }
+  if (route.query.reset === '1') {
+    return 'Şifren güncellendi. Yeni şifrenle giriş yapabilirsin.'
+  }
   return null
 })
 </script>
@@ -112,7 +115,7 @@ const notice = computed<string | null>(() => {
           @blur="fieldErrors.password = required(form.password, 'Şifre')"
         />
 
-        <a class="login__forgot" href="#" @click.prevent>Şifremi unuttum?</a>
+        <NuxtLink class="login__forgot" to="/forgot-password">Şifremi unuttum?</NuxtLink>
 
         <Transition name="login-error">
           <p v-if="authError" class="login__error" role="alert">

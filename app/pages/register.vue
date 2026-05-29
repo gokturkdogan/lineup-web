@@ -2,7 +2,7 @@
 import {
   email as validateEmail,
   maxLength,
-  minLength,
+  password as validatePassword,
   required,
 } from '~/utils/validators'
 
@@ -42,11 +42,6 @@ const validateName = (value: string): string | null =>
 
 const validateSurname = (value: string): string | null =>
   required(value, 'Soyad') ?? maxLength(value, 60, 'Soyad')
-
-const validatePassword = (value: string): string | null =>
-  required(value, 'Şifre') ??
-  minLength(value, 8, 'Şifre') ??
-  maxLength(value, 72, 'Şifre')
 
 const validateConfirmPassword = (value: string): string | null => {
   if (!value) return 'Şifre tekrarı zorunludur.'
