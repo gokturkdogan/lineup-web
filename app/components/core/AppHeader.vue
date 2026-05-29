@@ -20,7 +20,7 @@ const headerTitle = computed(() => {
 
 const onBack = () => {
   if (window.history.length > 1) router.back()
-  else router.replace('/')
+  else router.replace('/home')
 }
 </script>
 

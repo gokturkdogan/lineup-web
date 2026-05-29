@@ -6,7 +6,7 @@ interface NavItem {
 }
 
 const items: NavItem[] = [
-  { to: '/', label: 'Ana Sayfa', icon: 'home' },
+  { to: '/home', label: 'Ana Sayfa', icon: 'home' },
   { to: '/matches', label: 'Maçlar', icon: 'matches' },
   { to: '/players', label: 'Oyuncular', icon: 'players' },
   { to: '/profile', label: 'Profil', icon: 'profile' },

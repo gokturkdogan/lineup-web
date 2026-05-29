@@ -1,7 +1,7 @@
 /**
  * Route guard for authenticated pages.
- * Redirects unauthenticated visitors to `/login`, preserving the intended
- * destination in `?redirect=`.
+ * Redirects unauthenticated visitors to the welcome screen (`/`),
+ * preserving the intended destination in `?redirect=`.
  */
 export default defineNuxtRouteMiddleware((to) => {
   const auth = useAuthStore()
@@ -9,7 +9,7 @@ export default defineNuxtRouteMiddleware((to) => {
 
   if (!auth.isAuthenticated) {
     return navigateTo({
-      path: '/login',
+      path: '/',
       query: to.fullPath && to.fullPath !== '/' ? { redirect: to.fullPath } : undefined,
     })
   }
