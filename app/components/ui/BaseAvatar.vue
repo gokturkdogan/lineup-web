@@ -8,6 +8,8 @@ interface Props {
   alt?: string
 }
 
+const DEFAULT_AVATAR = '/images/default-avatar.svg'
+
 const props = withDefaults(defineProps<Props>(), {
   src: null,
   name: '',
@@ -16,9 +18,9 @@ const props = withDefaults(defineProps<Props>(), {
 })
 
 const initials = computed(() => {
-  if (!props.name) return '?'
+  if (!props.name) return ''
   const parts = props.name.trim().split(/\s+/).filter(Boolean)
-  if (parts.length === 0) return '?'
+  if (parts.length === 0) return ''
   if (parts.length === 1) return parts[0]!.charAt(0).toUpperCase()
   return (parts[0]!.charAt(0) + parts[parts.length - 1]!.charAt(0)).toUpperCase()
 })
@@ -31,19 +33,32 @@ watch(
   },
 )
 
-const showImage = computed(() => !!props.src && !loadFailed.value)
+const resolvedSrc = computed(() => {
+  if (props.src && !loadFailed.value) return props.src
+  if (!initials.value) return DEFAULT_AVATAR
+  return null
+})
+
+const showImage = computed(() => !!resolvedSrc.value)
+const showInitials = computed(() => !showImage.value && !!initials.value)
+
+function onImageError() {
+  if (props.src && resolvedSrc.value === props.src) {
+    loadFailed.value = true
+  }
+}
 </script>
 
 <template>
   <div class="avatar" :class="[`avatar--${size}`]">
     <img
       v-if="showImage"
-      :src="src!"
+      :src="resolvedSrc!"
       :alt="alt ?? name ?? 'profil'"
       class="avatar__img"
-      @error="loadFailed = true"
+      @error="onImageError"
     />
-    <span v-else class="avatar__initials" aria-hidden="true">{{ initials }}</span>
+    <span v-else-if="showInitials" class="avatar__initials" aria-hidden="true">{{ initials }}</span>
   </div>
 </template>
 

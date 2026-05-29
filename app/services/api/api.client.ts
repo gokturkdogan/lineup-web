@@ -5,24 +5,18 @@ import axios, {
   type InternalAxiosRequestConfig,
 } from 'axios'
 import { ApiError, type ApiErrorBody } from '~/types/api'
+import { GUEST_ROUTES, WELCOME_ROUTE } from '~/constants/routes'
 
-/**
- * Cookie that stores the JWT access token. Kept in one place so server and
- * client code agree on the name.
- */
+export { WELCOME_ROUTE }
+
+/** Cookie that stores the JWT access token. */
 export const ACCESS_TOKEN_COOKIE = 'access_token'
 
-/**
- * Cookie that stores the opaque refresh token (not a JWT).
- * Used by `POST /auth/refresh` when the access token expires.
- */
+/** Cookie that stores the opaque refresh token. */
 export const REFRESH_TOKEN_COOKIE = 'refresh_token'
 
-/** Karşılama ekranı — oturumsuz kullanıcının giriş noktası. */
-export const WELCOME_ROUTE = '/'
-
-/** Oturum gerektirmeyen auth sayfaları (401 yönlendirmesi atlanır). */
-export const GUEST_AUTH_ROUTES = ['/', '/login', '/register'] as const
+/** 401 yönlendirmesi atlanacak guest auth sayfaları. */
+export const GUEST_AUTH_ROUTES = GUEST_ROUTES
 
 let _instance: AxiosInstance | null = null
 let _redirectingToLogin = false

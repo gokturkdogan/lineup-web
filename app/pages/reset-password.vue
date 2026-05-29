@@ -4,8 +4,6 @@ import { ApiError } from '~/types/api'
 import { password as validatePassword } from '~/utils/validators'
 
 definePageMeta({
-  // Mailden gelen kullanıcı oturum açık olabilir; bu yüzden `guest` middleware
-  // yok — sayfa hem oturumlu hem oturumsuz erişilebilir olmalı.
   layout: 'auth',
   title: 'Yeni şifre belirle',
 })

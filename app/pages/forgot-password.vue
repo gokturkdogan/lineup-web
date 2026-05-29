@@ -5,7 +5,6 @@ import { email as validateEmail } from '~/utils/validators'
 
 definePageMeta({
   layout: 'auth',
-  middleware: 'guest',
   title: 'Şifremi unuttum',
 })
 
