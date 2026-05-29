@@ -31,3 +31,22 @@ export const maxLength = (
   if (value && value.length > max) return `${label} en fazla ${max} karakter olabilir.`
   return null
 }
+
+/**
+ * Parola politikası (backend ile birebir aynı):
+ * - 6–12 karakter
+ * - En az bir harf (a–z / A–Z) ve en az bir rakam (0–9)
+ *
+ * @see /^(?=.*[A-Za-z])(?=.*\d).{6,12}$/
+ */
+export const password = (
+  value: string | null | undefined,
+  label = 'Şifre',
+): string | null => {
+  if (!value) return `${label} zorunludur.`
+  if (value.length < 6 || value.length > 12) return `${label} 6-12 karakter olmalıdır.`
+  if (!/[A-Za-z]/.test(value) || !/\d/.test(value)) {
+    return `${label} en az bir harf ve bir rakam içermelidir.`
+  }
+  return null
+}

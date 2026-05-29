@@ -50,6 +50,22 @@ const submitDisabled = computed(
 const isEmailStructurallyValid = computed(
   () => !validateEmail(form.email),
 )
+
+// Login'e bilgilendirme amaçlı yönlendirmeler:
+// - `?registered=1`  → kayıt sonrası "e-postanı doğrula"
+// - `?reason=verify-email` → doğrulama mailini yeniden göndermek için giriş gerek
+const notice = computed<string | null>(() => {
+  if (route.query.registered === '1') {
+    return 'Kaydın alındı. E-postana gönderdiğimiz bağlantıyla hesabını doğrula, sonra giriş yap.'
+  }
+  if (route.query.reason === 'verify-email') {
+    return 'Doğrulama e-postanı yeniden göndermek için önce giriş yapman gerekiyor.'
+  }
+  if (route.query.reset === '1') {
+    return 'Şifren güncellendi. Yeni şifrenle giriş yapabilirsin.'
+  }
+  return null
+})
 </script>
 
 <template>
@@ -62,6 +78,16 @@ const isEmailStructurallyValid = computed(
     </header>
 
     <section class="login__sheet">
+      <Transition name="login-error">
+        <p v-if="notice" class="login__notice" role="status">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" aria-hidden="true">
+            <path d="M4 6.5h16v11H4z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" />
+            <path d="M4.5 7l7.5 6 7.5-6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+          <span>{{ notice }}</span>
+        </p>
+      </Transition>
+
       <form id="login-form" class="login__form" novalidate @submit.prevent="onSubmit">
         <BaseInput
           v-model="form.email"
@@ -89,7 +115,7 @@ const isEmailStructurallyValid = computed(
           @blur="fieldErrors.password = required(form.password, 'Şifre')"
         />
 
-        <a class="login__forgot" href="#" @click.prevent>Şifremi unuttum?</a>
+        <NuxtLink class="login__forgot" to="/forgot-password">Şifremi unuttum?</NuxtLink>
 
         <Transition name="login-error">
           <p v-if="authError" class="login__error" role="alert">
@@ -236,6 +262,24 @@ $sheet-radius: 32px;
   @include media-hover {
     &:hover { color: $color-primary-hover; }
   }
+}
+
+// =====================================================================
+// Success notice (kayıt sonrası doğrulama bilgisi)
+// =====================================================================
+.login__notice {
+  display: flex;
+  align-items: flex-start;
+  gap: $space-2;
+  margin: 0 0 $space-lg;
+  padding: $space-3 $space-md;
+  background-color: rgba($color-primary, 0.10);
+  color: $color-primary-hover;
+  font-size: $font-size-base;
+  line-height: 1.45;
+  border-radius: $radius-md;
+
+  svg { flex: 0 0 auto; margin-top: 1px; }
 }
 
 // =====================================================================

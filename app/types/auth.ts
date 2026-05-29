@@ -49,3 +49,28 @@ export interface AuthState {
   token: string | null
   user: User | null
 }
+
+/**
+ * `POST /auth/verify-email` istek gövdesi.
+ * `token` mail'deki bağlantının query parametresinden gelir (opaque, tek kullanımlık).
+ */
+export interface VerifyEmailPayload {
+  token: string
+}
+
+/**
+ * `POST /auth/forgot-password` istek gövdesi.
+ * Public endpoint; hesap var/yok ayırt edilmeksizin her durumda 204 döner.
+ */
+export interface ForgotPasswordPayload {
+  email: string
+}
+
+/**
+ * `POST /auth/reset-password` istek gövdesi.
+ * `token` mail'deki bağlantının query parametresinden gelir (TTL 30 dk).
+ */
+export interface ResetPasswordPayload {
+  token: string
+  newPassword: string
+}
