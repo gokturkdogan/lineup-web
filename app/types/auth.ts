@@ -49,3 +49,11 @@ export interface AuthState {
   token: string | null
   user: User | null
 }
+
+/**
+ * `POST /auth/verify-email` istek gövdesi.
+ * `token` mail'deki bağlantının query parametresinden gelir (opaque, tek kullanımlık).
+ */
+export interface VerifyEmailPayload {
+  token: string
+}

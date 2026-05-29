@@ -74,7 +74,8 @@ const onSubmit = async () => {
       email: form.email.trim(),
       password: form.password,
     })
-    await router.replace('/home')
+    // Otomatik login yok: kayıt sonrası kullanıcı e-postasını doğrulamalı.
+    await router.replace({ path: '/login', query: { registered: '1' } })
   } catch {
     // Hata mesajı `authError` (auth store) içinde tutuluyor; UI banner gösterir.
   }
