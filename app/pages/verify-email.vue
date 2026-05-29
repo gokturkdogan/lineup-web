@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { authService } from '~/services/auth.service'
 import { ApiError } from '~/types/api'
+import { HOME_ROUTE } from '~/constants/routes'
 
 definePageMeta({
   layout: 'welcome',
@@ -124,7 +125,7 @@ onMounted(() => {
             <NuxtLink
               v-if="isAuthenticated"
               class="verify__btn verify__btn--solid"
-              to="/home"
+              :to="HOME_ROUTE"
             >
               Devam et
             </NuxtLink>

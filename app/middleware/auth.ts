@@ -1,6 +1,8 @@
+import { WELCOME_ROUTE } from '~/constants/routes'
+
 /**
  * Route guard for authenticated pages.
- * Redirects unauthenticated visitors to the welcome screen (`/`),
+ * Redirects unauthenticated visitors to the welcome screen,
  * preserving the intended destination in `?redirect=`.
  */
 export default defineNuxtRouteMiddleware((to) => {
@@ -9,8 +11,8 @@ export default defineNuxtRouteMiddleware((to) => {
 
   if (!auth.isAuthenticated) {
     return navigateTo({
-      path: '/',
-      query: to.fullPath && to.fullPath !== '/' ? { redirect: to.fullPath } : undefined,
+      path: WELCOME_ROUTE,
+      query: to.fullPath && to.fullPath !== WELCOME_ROUTE ? { redirect: to.fullPath } : undefined,
     })
   }
 })

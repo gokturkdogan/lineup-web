@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { email as validateEmail, required } from '~/utils/validators'
+import { HOME_ROUTE } from '~/constants/routes'
 
 definePageMeta({
   layout: 'auth',
-  middleware: 'guest',
   title: 'Giriş yap',
 })
 
@@ -34,7 +34,7 @@ const onSubmit = async () => {
   try {
     await login({ email: form.email.trim(), password: form.password })
     const redirect =
-      typeof route.query.redirect === 'string' ? route.query.redirect : '/home'
+      typeof route.query.redirect === 'string' ? route.query.redirect : HOME_ROUTE
     await router.replace(redirect)
   } catch {
     // Hata mesajı auth store içinde (`authError`) tutuluyor.

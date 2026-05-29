@@ -8,7 +8,6 @@ import {
 
 definePageMeta({
   layout: 'auth',
-  middleware: 'guest',
   title: 'Kayıt ol',
 })
 
