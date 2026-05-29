@@ -5,6 +5,7 @@ import type {
   LoginPayload,
   LoginResponse,
   RegisterOwnerPayload,
+  VerifyEmailPayload,
 } from '~/types/auth'
 
 /**
@@ -30,5 +31,23 @@ export const authService = {
       RegisterOwnerPayload
     >('/auth/register/owner', payload)
     return envelope.data
+  },
+
+  /**
+   * E-posta doğrulama. Public endpoint — auth header gerekmez,
+   * token tek başına yetki görevi görür. Başarıda `204 No Content` döner.
+   * Token tek kullanımlıktır; istek yalnızca bir kez atılmalıdır.
+   */
+  verifyEmail(payload: VerifyEmailPayload): Promise<void> {
+    return api.post<void, VerifyEmailPayload>('/auth/verify-email', payload)
+  },
+
+  /**
+   * Doğrulama e-postasını yeniden gönderir. Authorization header gerektirir
+   * (interceptor otomatik ekler). Kullanıcı sayımını (enumeration) önlemek
+   * için her durumda `204` döner.
+   */
+  resendVerification(): Promise<void> {
+    return api.post<void>('/auth/verify-email/resend')
   },
 }

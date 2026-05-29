@@ -1,14 +1,12 @@
 import { defineStore } from 'pinia'
 import { authService } from '~/services/auth.service'
 import { ACCESS_TOKEN_COOKIE, REFRESH_TOKEN_COOKIE } from '~/services/api/api.client'
-import { decodeJwtPayload } from '~/utils/jwt'
 import type {
-  AccessTokenClaims,
   AuthTokens,
   LoginPayload,
   RegisterOwnerPayload,
 } from '~/types/auth'
-import type { User, UserRole } from '~/types/user'
+import type { User } from '~/types/user'
 
 const USER_COOKIE = 'lineup_user'
 const USER_COOKIE_MAX_AGE = 60 * 60 * 24 * 30 // 30 gün
@@ -79,20 +77,15 @@ export const useAuthStore = defineStore('auth', {
     /**
      * Kulüp sahibi (OWNER) kaydı.
      *
-     * Cevap yalnızca token çiftini içerir; user bilgisi:
-     * - JWT claim'lerinden (`sub`, `organizationId`, `email`, `role`)
-     * - Formdan gelen ad / soyad değerlerinden
-     * birleştirilerek lokal olarak oluşturulur. Böylece ek bir `/users/me`
-     * isteği gerekmez ve kayıt sonrası anında uygulama açılır.
+     * Otomatik login YOK: kayıt sonrası kullanıcı oturuma alınmaz. Backend
+     * doğrulama e-postası gönderir; kullanıcı e-postasını doğrulayıp ardından
+     * giriş yapar. Bu yüzden burada token/user kalıcılaştırılmaz.
      */
     async register(payload: RegisterOwnerPayload) {
       this.loading = true
       this.error = null
       try {
-        const tokens = await authService.registerOwner(payload)
-        const user = this._buildUserFromTokens(tokens, payload)
-        this._setTokens(tokens)
-        this._setUser(user)
+        await authService.registerOwner(payload)
       } catch (err) {
         const message =
           (err as { message?: string } | undefined)?.message ??
@@ -160,22 +153,6 @@ export const useAuthStore = defineStore('auth', {
       })
       userCookie.value = user
       this.user = user
-    },
-
-    _buildUserFromTokens(
-      tokens: AuthTokens,
-      payload: RegisterOwnerPayload,
-    ): User {
-      const claims = decodeJwtPayload<AccessTokenClaims>(tokens.accessToken)
-      return {
-        id: claims?.sub ?? '',
-        organizationId: claims?.organizationId ?? '',
-        email: claims?.email ?? payload.email,
-        role: (claims?.role as UserRole) ?? 'OWNER',
-        name: payload.firstName,
-        surname: payload.lastName,
-        avatarUrl: null,
-      }
     },
   },
 })
