@@ -2,9 +2,11 @@ import { api } from './api/api.client'
 import type { ApiEnvelope } from '~/types/api'
 import type {
   AuthTokens,
+  ForgotPasswordPayload,
   LoginPayload,
   LoginResponse,
   RegisterOwnerPayload,
+  ResetPasswordPayload,
   VerifyEmailPayload,
 } from '~/types/auth'
 
@@ -49,5 +51,23 @@ export const authService = {
    */
   resendVerification(): Promise<void> {
     return api.post<void>('/auth/verify-email/resend')
+  },
+
+  /**
+   * Şifre sıfırlama bağlantısı talebi. Public endpoint — e-posta sayımını
+   * (enumeration) önlemek için hesap var/yok ayırt edilmeksizin her zaman
+   * `204` döner. UI nötr bir başarı mesajı göstermeli.
+   */
+  forgotPassword(payload: ForgotPasswordPayload): Promise<void> {
+    return api.post<void, ForgotPasswordPayload>('/auth/forgot-password', payload)
+  },
+
+  /**
+   * Parola sıfırlama. Public endpoint; başarıda `204` döner ve kullanıcının
+   * tüm cihazlardaki oturumları (refresh token'lar) iptal edilir. Token TTL'i
+   * 30 dakikadır; geçersiz/süresi dolmuş tüm durumlar tek bir 400 ile döner.
+   */
+  resetPassword(payload: ResetPasswordPayload): Promise<void> {
+    return api.post<void, ResetPasswordPayload>('/auth/reset-password', payload)
   },
 }
