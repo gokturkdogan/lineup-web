@@ -7,6 +7,7 @@ import type {
   AuthTokens,
   LoginPayload,
   RegisterOwnerPayload,
+  RegisterPlayerPayload,
 } from '~/types/auth'
 import type { User, UserRole } from '~/types/user'
 
@@ -94,6 +95,28 @@ export const useAuthStore = defineStore('auth', {
         const message =
           (err as { message?: string } | undefined)?.message ??
           'Kayıt yapılamadı. Lütfen tekrar deneyin.'
+        this.error = message
+        throw err
+      } finally {
+        this.loading = false
+      }
+    },
+
+    /**
+     * Davet linki ile oyuncu kaydı.
+     *
+     * Otomatik login YOK: kayıt sonrası kullanıcı oturuma alınmaz. Backend
+     * doğrulama e-postası gönderir; kullanıcı giriş sayfasından devam eder.
+     */
+    async registerPlayer(payload: RegisterPlayerPayload) {
+      this.loading = true
+      this.error = null
+      try {
+        await authService.registerPlayer(payload)
+      } catch (err) {
+        const message =
+          (err as { message?: string } | undefined)?.message ??
+          'Kayıt tamamlanamadı. Lütfen tekrar dene.'
         this.error = message
         throw err
       } finally {

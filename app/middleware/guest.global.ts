@@ -2,7 +2,7 @@ import { GUEST_ROUTES, HOME_ROUTE } from '~/constants/routes'
 
 /**
  * Oturum açmış kullanıcıyı guest-only sayfalardan `/dashboard`'a yönlendirir.
- * (`/`, login, register, forgot-password, reset-password)
+ * (`/`, login, register, forgot-password, reset-password, invite/accept)
  *
  * `verify-email` dahil değil — maildeki token akışı oturumlu/oturumsuz çalışabilir.
  */

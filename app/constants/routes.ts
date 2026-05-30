@@ -5,6 +5,7 @@ export const GUEST_ROUTES = [
   '/register',
   '/forgot-password',
   '/reset-password',
+  '/invite/accept',
 ] as const
 
 export type GuestRoute = (typeof GUEST_ROUTES)[number]
