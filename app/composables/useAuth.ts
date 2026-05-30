@@ -21,6 +21,7 @@ export const useAuth = () => {
     // Actions
     login: authStore.login,
     register: authStore.register,
+    registerPlayer: authStore.registerPlayer,
     logout: authStore.logout,
   }
 }

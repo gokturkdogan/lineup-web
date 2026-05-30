@@ -5,6 +5,7 @@ import type {
   ForgotPasswordPayload,
   LoginPayload,
   RegisterOwnerPayload,
+  RegisterPlayerPayload,
   ResetPasswordPayload,
   VerifyEmailPayload,
 } from '~/types/auth'
@@ -41,6 +42,20 @@ export const authService = {
       ApiEnvelope<AuthTokens>,
       RegisterOwnerPayload
     >('/auth/register/owner', payload)
+    return envelope.data
+  },
+
+  /**
+   * Davet linki ile oyuncu (PLAYER) kaydı.
+   * Başarıda token çifti döner — ayrı login gerekmez.
+   *
+   * @see https://github.com/gokturkdogan/lineup-api/blob/main/docs/register-player.md
+   */
+  async registerPlayer(payload: RegisterPlayerPayload): Promise<AuthTokens> {
+    const envelope = await api.post<
+      ApiEnvelope<AuthTokens>,
+      RegisterPlayerPayload
+    >('/auth/register/player', payload)
     return envelope.data
   },
 

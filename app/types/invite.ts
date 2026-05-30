@@ -28,3 +28,14 @@ export interface SendInviteEmailPayload {
 export interface SendInviteEmailResult {
   emailSent: boolean
 }
+
+/** `POST /invites/validate` istek gövdesi — public, UX önizlemesi. */
+export interface ValidateInvitePayload {
+  token: string
+}
+
+/** `POST /invites/validate` başarı cevabının `data` alanı. */
+export interface ValidateInviteResult {
+  valid: boolean
+  organizationName: string
+}

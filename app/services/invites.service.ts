@@ -5,6 +5,8 @@ import type {
   InviteRecord,
   SendInviteEmailPayload,
   SendInviteEmailResult,
+  ValidateInvitePayload,
+  ValidateInviteResult,
 } from '~/types/invite'
 import type { PlayerInviteLink } from '~/types/player'
 
@@ -42,6 +44,19 @@ export const invitesService = {
       ApiEnvelope<SendInviteEmailResult>,
       SendInviteEmailPayload
     >('/invites/send-email', payload)
+
+    return envelope.data
+  },
+
+  /**
+   * Davet token'ını doğrular — yalnızca UX önizlemesi (org adı).
+   * Asıl validasyon `register/player` sırasında yapılır.
+   */
+  async validateInvite(token: string): Promise<ValidateInviteResult> {
+    const envelope = await api.post<
+      ApiEnvelope<ValidateInviteResult>,
+      ValidateInvitePayload
+    >('/invites/validate', { token })
 
     return envelope.data
   },

@@ -20,6 +20,18 @@ export interface RegisterOwnerPayload {
 }
 
 /**
+ * `POST /auth/register/player` istek gövdesi.
+ * @see https://github.com/gokturkdogan/lineup-api/blob/main/docs/register-player.md
+ */
+export interface RegisterPlayerPayload {
+  inviteToken: string
+  firstName: string
+  lastName: string
+  email: string
+  password: string
+}
+
+/**
  * `POST /auth/register/owner` başarı cevabının `data` alanı.
  */
 export interface AuthTokens {
