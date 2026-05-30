@@ -29,13 +29,6 @@ const quickActions = [
     icon: 'match',
     accent: true,
   },
-  {
-    id: 'invite',
-    label: 'Oyuncu davet et',
-    to: '/players',
-    icon: 'invite',
-    accent: false,
-  },
 ]
 
 interface UpcomingMatch {
@@ -82,6 +75,8 @@ const squadFillPercent = computed(() => {
   if (!capacity) return 0
   return Math.min(100, Math.round((confirmed / capacity) * 100))
 })
+
+const showInviteModal = ref(false)
 </script>
 
 <template>
@@ -131,14 +126,24 @@ const squadFillPercent = computed(() => {
           >
             <span class="dashboard__action-icon" aria-hidden="true">
               <SoccerBallIcon v-if="action.icon === 'match'" :size="20" />
-              <svg v-else viewBox="0 0 24 24" width="20" height="20" fill="none">
+            </span>
+            <span class="dashboard__action-label">{{ action.label }}</span>
+          </NuxtLink>
+
+          <button
+            type="button"
+            class="dashboard__action"
+            @click="showInviteModal = true"
+          >
+            <span class="dashboard__action-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="none">
                 <circle cx="9" cy="8" r="3.5" stroke="currentColor" stroke-width="1.8" />
                 <path d="M3 19c.8-3 3.4-4.8 6-4.8s5.2 1.8 6 4.8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
                 <path d="M19 8v6M16 11h6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
               </svg>
             </span>
-            <span class="dashboard__action-label">{{ action.label }}</span>
-          </NuxtLink>
+            <span class="dashboard__action-label">Oyuncu davet et</span>
+          </button>
         </div>
       </section>
 
@@ -259,6 +264,8 @@ const squadFillPercent = computed(() => {
         </BaseCard>
       </section>
     </div>
+
+    <PlayerInviteModal v-model="showInviteModal" />
   </div>
 </template>
 
@@ -445,11 +452,15 @@ const squadFillPercent = computed(() => {
   gap: $space-3;
   padding: $space-3;
   min-height: 82px;
+  width: 100%;
   background-color: $color-surface;
   border: 1px solid rgba($color-text, 0.04);
   border-radius: $radius-lg;
   color: $color-text;
   text-decoration: none;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
   @include shadow(sm);
   transition:
     transform $duration-fast $ease-standard,
