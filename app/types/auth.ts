@@ -5,10 +5,8 @@ export interface LoginPayload {
   password: string
 }
 
-export interface LoginResponse {
-  accessToken: string
-  user: User
-}
+/** `POST /auth/login` başarı cevabının `data` alanı (register ile aynı). */
+export type LoginResponse = AuthTokens
 
 /**
  * `POST /auth/register/owner` istek gövdesi.

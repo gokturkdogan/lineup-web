@@ -4,7 +4,6 @@ import type {
   AuthTokens,
   ForgotPasswordPayload,
   LoginPayload,
-  LoginResponse,
   RegisterOwnerPayload,
   ResetPasswordPayload,
   VerifyEmailPayload,
@@ -18,8 +17,18 @@ import type {
  * burada zarfın `data` alanını açar; çağıran katmanlar sadece payload'ı görür.
  */
 export const authService = {
-  login(payload: LoginPayload) {
-    return api.post<LoginResponse, LoginPayload>('/auth/login', payload)
+  /**
+   * Oturum açma.
+   *
+   * Cevap yalnızca token çiftini içerir (`ApiEnvelope<AuthTokens>`); user bilgisi
+   * JWT claim'lerinden lokal olarak oluşturulur.
+   */
+  async login(payload: LoginPayload): Promise<AuthTokens> {
+    const envelope = await api.post<
+      ApiEnvelope<AuthTokens>,
+      LoginPayload
+    >('/auth/login', payload)
+    return envelope.data
   },
 
   /**

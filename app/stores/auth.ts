@@ -1,12 +1,14 @@
 import { defineStore } from 'pinia'
 import { authService } from '~/services/auth.service'
 import { ACCESS_TOKEN_COOKIE, REFRESH_TOKEN_COOKIE } from '~/services/api/api.client'
+import { decodeJwtPayload } from '~/utils/jwt'
 import type {
+  AccessTokenClaims,
   AuthTokens,
   LoginPayload,
   RegisterOwnerPayload,
 } from '~/types/auth'
-import type { User } from '~/types/user'
+import type { User, UserRole } from '~/types/user'
 
 const USER_COOKIE = 'lineup_user'
 const USER_COOKIE_MAX_AGE = 60 * 60 * 24 * 30 // 30 gün
@@ -61,8 +63,10 @@ export const useAuthStore = defineStore('auth', {
       this.loading = true
       this.error = null
       try {
-        const { accessToken, user } = await authService.login(payload)
-        this._persist(accessToken, user)
+        const tokens = await authService.login(payload)
+        const user = this._buildUserFromTokens(tokens, payload.email)
+        this._setTokens(tokens)
+        this._setUser(user)
       } catch (err) {
         const message =
           (err as { message?: string } | undefined)?.message ??
@@ -153,6 +157,19 @@ export const useAuthStore = defineStore('auth', {
       })
       userCookie.value = user
       this.user = user
+    },
+
+    _buildUserFromTokens(tokens: AuthTokens, fallbackEmail: string): User {
+      const claims = decodeJwtPayload<AccessTokenClaims>(tokens.accessToken)
+      return {
+        id: claims?.sub ?? '',
+        organizationId: claims?.organizationId ?? '',
+        email: claims?.email ?? fallbackEmail,
+        role: (claims?.role as UserRole) ?? 'PLAYER',
+        name: '',
+        surname: '',
+        avatarUrl: null,
+      }
     },
   },
 })

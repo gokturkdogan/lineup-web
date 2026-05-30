@@ -1,7 +1,6 @@
 <script setup lang="ts">
 definePageMeta({
   layout: 'welcome',
-  middleware: 'guest',
   title: 'Lineup',
 })
 
