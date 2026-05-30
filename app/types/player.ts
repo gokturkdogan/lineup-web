@@ -1,6 +1,7 @@
 export interface PlayerInviteLink {
   url: string
   expiresAt?: string
+  id?: string
 }
 
 export interface SendPlayerInvitePayload {

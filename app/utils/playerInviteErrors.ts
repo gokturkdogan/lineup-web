@@ -8,7 +8,7 @@ const GENERIC_VIEW: PlayerInviteErrorView = PlayerInviteError.generic().toView()
 
 /**
  * Bilinen davet hatalarını UI görünümüne çevirir.
- * Backend entegrasyonunda ApiError mesaj/kodu burada eşlenir.
+ * @see https://github.com/gokturkdogan/lineup-api/blob/main/docs/invite.md
  */
 export function toPlayerInviteErrorView(error: unknown): PlayerInviteErrorView {
   if (error instanceof PlayerInviteError) {
@@ -16,18 +16,8 @@ export function toPlayerInviteErrorView(error: unknown): PlayerInviteErrorView {
   }
 
   if (error instanceof ApiError) {
-    const normalized = error.message.toLowerCase()
-
-    if (
-      error.status === 403
-      || normalized.includes('email not verified')
-      || normalized.includes('e-posta doğrula')
-    ) {
+    if (error.errorCode === 'EMAIL_NOT_VERIFIED') {
       return PlayerInviteError.emailNotVerified().toView()
-    }
-
-    if (error.status === 429) {
-      return PlayerInviteError.inviteLimitReached().toView()
     }
 
     return PlayerInviteError.generic(error.message).toView()
