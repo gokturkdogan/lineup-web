@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { email as validateEmail } from '~/utils/validators'
-import { playersService } from '~/services/players.service'
 import { authService } from '~/services/auth.service'
 import type { PlayerInviteErrorView } from '~/types/player'
 
@@ -17,8 +16,11 @@ const emit = defineEmits<{
 const {
   status,
   inviteUrl,
+  inviteExpiresAt,
   inviteError,
   fetchInviteLink,
+  sendInviteEmail,
+  getSendEmailErrorMessage,
   reset,
 } = usePlayerInvite()
 
@@ -36,12 +38,20 @@ const isReady = computed(() => status.value === 'ready' && !!inviteUrl.value)
 const isError = computed(() => status.value === 'error' && !!inviteError.value)
 const canSendEmail = computed(() => validateEmail(targetEmail.value) === null)
 
-const errorVariant = computed(() => {
-  const code = inviteError.value?.code
-  if (code === 'EMAIL_NOT_VERIFIED') return 'warning'
-  if (code === 'INVITE_LIMIT_REACHED') return 'info'
-  return 'error'
+const inviteExpiryLabel = computed(() => {
+  if (!inviteExpiresAt.value) return null
+
+  const expiresAt = new Date(inviteExpiresAt.value)
+  if (Number.isNaN(expiresAt.getTime())) return null
+
+  return expiresAt.toLocaleDateString('tr-TR', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  })
 })
+
+const errorVariant = computed(() => 'warning')
 
 const resetEmailForm = () => {
   showEmailForm.value = false
@@ -92,14 +102,18 @@ const sendEmailInvite = async () => {
   emailSent.value = false
 
   try {
-    await playersService.sendInviteByEmail({
-      email: targetEmail.value.trim(),
-      inviteUrl: inviteUrl.value,
-    })
-    emailSent.value = true
-    targetEmail.value = ''
-  } catch {
-    emailError.value = 'Davet gönderilemedi. Lütfen tekrar dene.'
+    const result = await sendInviteEmail(targetEmail.value)
+
+    if (result.emailSent) {
+      emailSent.value = true
+      targetEmail.value = ''
+      return
+    }
+
+    emailError.value =
+      'Mail gönderilemedi. Davet linki geçerli — kopyalayıp manuel paylaşabilirsin.'
+  } catch (error) {
+    emailError.value = getSendEmailErrorMessage(error)
   } finally {
     sendingEmail.value = false
   }
@@ -196,24 +210,19 @@ onUnmounted(() => {
               <path d="M18 4.2v3.6M16.2 6h3.6" stroke="#fff" stroke-width="1.2" stroke-linecap="round" />
             </svg>
             <svg
-              v-else-if="inviteError.code === 'INVITE_LIMIT_REACHED'"
-              viewBox="0 0 24 24"
-              width="24"
-              height="24"
-              fill="none"
-            >
-              <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.6" />
-              <path d="M12 7v6M12 16.5v.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
-            </svg>
-            <svg
               v-else
               viewBox="0 0 24 24"
               width="24"
               height="24"
               fill="none"
             >
-              <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.6" />
-              <path d="M8 8l8 8M16 8l-8 8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+              <path
+                d="M12 3.5L2.5 19.5h19L12 3.5z"
+                stroke="currentColor"
+                stroke-width="1.6"
+                stroke-linejoin="round"
+              />
+              <path d="M12 9v5.5M12 16.5v.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
             </svg>
           </span>
 
@@ -291,6 +300,12 @@ onUnmounted(() => {
           <div class="player-invite__link-wrap">
             <p class="player-invite__link-label">Davet bağlantısı</p>
             <p class="player-invite__link-url">{{ inviteUrl }}</p>
+            <p
+              v-if="inviteExpiryLabel"
+              class="player-invite__link-expiry"
+            >
+              {{ inviteExpiryLabel }} tarihine kadar geçerli
+            </p>
           </div>
         </div>
 
@@ -583,6 +598,13 @@ onUnmounted(() => {
   line-height: 1.4;
   color: $color-text;
   word-break: break-all;
+}
+
+.player-invite__link-expiry {
+  margin: $space-1 0 0;
+  font-size: $font-size-xs;
+  line-height: 1.35;
+  color: $color-text-muted;
 }
 
 .player-invite__hint {

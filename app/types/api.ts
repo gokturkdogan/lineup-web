@@ -15,6 +15,7 @@ export interface ApiErrorMeta {
   method?: string
   timestamp?: string
   errors?: string[]
+  errorCode?: string
 }
 
 export interface ApiErrorBody {
@@ -31,6 +32,7 @@ export class ApiError extends Error {
   public readonly status: number
   public readonly errors: string[]
   public readonly path?: string
+  public readonly errorCode?: string
   public readonly data?: ApiErrorBody
 
   constructor(status: number, message: string, data?: ApiErrorBody) {
@@ -39,6 +41,7 @@ export class ApiError extends Error {
     this.status = status
     this.errors = data?.meta?.errors ?? []
     this.path = data?.meta?.path
+    this.errorCode = data?.meta?.errorCode
     this.data = data
   }
 }
